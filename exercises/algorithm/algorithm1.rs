@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -69,15 +68,44 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self
+    where
+        T: Ord,
+    {
+        let mut values_a = Vec::with_capacity(list_a.length as usize);
+        let mut current = list_a.start;
+        while let Some(node_ptr) = current {
+            unsafe {
+                let node = Box::from_raw(node_ptr.as_ptr());
+                current = node.next;
+                values_a.push(node.val);
+            }
         }
-	}
+
+        let mut values_b = Vec::with_capacity(list_b.length as usize);
+        let mut current = list_b.start;
+        while let Some(node_ptr) = current {
+            unsafe {
+                let node = Box::from_raw(node_ptr.as_ptr());
+                current = node.next;
+                values_b.push(node.val);
+            }
+        }
+
+        let mut iter_a = values_a.into_iter().peekable();
+        let mut iter_b = values_b.into_iter().peekable();
+        let mut merged = Self::new();
+        loop {
+            match (iter_a.peek(), iter_b.peek()) {
+                (Some(a), Some(b)) if a <= b => merged.add(iter_a.next().unwrap()),
+                (Some(_), Some(_)) => merged.add(iter_b.next().unwrap()),
+                (Some(_), None) => merged.add(iter_a.next().unwrap()),
+                (None, Some(_)) => merged.add(iter_b.next().unwrap()),
+                (None, None) => break,
+            }
+        }
+        merged
+    }
 }
 
 impl<T> Display for LinkedList<T>
